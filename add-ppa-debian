@@ -4,7 +4,7 @@
 #
 # Usage : sudo ./add-ppa-debian ppa:user/ppa-name
 #
-# This script is modified by Francis Theodore Catt & Davius from the original created by Adnan Hozic.
+# This script is modified by Francis Theodore Catte & Davius from the original created by Adnan Hozic.
 # This utility helps installing repository from Launchpad under Debian
 #
 # Copyright © 2014 Adnan Hodzic <adnan@hodzic.org>
