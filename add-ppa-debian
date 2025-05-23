@@ -4,7 +4,7 @@
 #
 # Usage : sudo ./add-ppa-debian ppa:user/ppa-name
 #
-# This script is modified by Davius from the original created by Adnan Hozic.
+# This script is modified by Francis Theodore Catt & Davius from the original created by Adnan Hozic.
 # This utility helps installing repository from Launchpad under Debian
 #
 # Copyright © 2014 Adnan Hodzic <adnan@hodzic.org>
@@ -13,15 +13,15 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# 
+#
 
 
 # Root checker
@@ -49,7 +49,7 @@ then
 		echo -e "PPA name parameter missing!\n"
 		echo -e "Correct syntax:"
 		echo -e "sudo add-apt-repository ppa:user/ppa-name"
-		echo -e "\n------------------------------------------\n"	
+		echo -e "\n------------------------------------------\n"
 	else
 
 	# validate PPA existance
@@ -68,7 +68,6 @@ then
 		echo -e "PPA not found!\n"
 		echo -e "Check spelling? \"ppa:$ppa_name"\"
 		echo -e "\n---------------------------------------------\n"
-			
 		exit 1
 	fi
 
@@ -78,7 +77,6 @@ then
         touch $ppd_d
 
 		# detect codename
-		
 		if [ "$(lsb_release -cs)" == "bullseye" ];
 		then
     		codename=focal
@@ -108,23 +106,34 @@ then
 		then
     		codename=jammy
 
-		else 
+		else
     		echo "Unsupported Debian version \(>= Wheezy only\)"
 			exit 1
 		fi
-	
+
+
+		# Get public key (ouchie levels of hackery ahead)
+		wget -q "https://launchpad.net/~${ppa_usr}/+archive/ubuntu/${ppa_d_name}" -O /tmp/${NAME}.html
+		tmp=$(grep "<code>" /tmp/${NAME}.html | tr -d ' ')
+		key=${tmp:12:40}
+		pkill dirmngr && \
+			gpg --homedir /tmp --no-default-keyring  \
+			--keyring gnupg-ring:/usr/share/keyrings/$ppa_usr.$ppa_d_name.gpg \
+			--keyserver hkps://keyserver.ubuntu.com --recv-keys $key
+		chmod 0644 /usr/share/keyrings/$ppa_usr.$ppa_d_name.gpg
+
 		# Add PPA
-		echo "$ppa_name"
-		echo "deb [trusted=yes] https://ppa.launchpadcontent.net/$ppa_name/ubuntu $codename main" > $ppd_d
-		apt-get update >> /dev/null 2> /tmp/${NAME}_apt_add_key.txt
-		key=`cat /tmp/${NAME}_apt_add_key.txt | cut -d":" -f6 | cut -d" " -f3`
-		apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $key
-		rm -rf /tmp/${NAME}_apt_add_key.txt
-		mv /etc/apt/trusted.gpg /etc/apt/trusted.gpg.d/$ppa_usr-$ppa_d_name.gpg
+		echo "deb [signed-by=/usr/share/keyrings/${ppa_usr}.${ppa_d_name}.gpg] https://ppa.launchpadcontent.net/$ppa_name/ubuntu $codename main" > $ppd_d
+		apt update
+
+		# Cleanup
+		rm /tmp/${NAME}*
+		rm /tmp/trustdb.gpg
 
 	# print result
 	echo -e "\n------------------------------------------------------------"
 	echo -e "\nPPA \"$ppa_name\" added: $ppd_d"
+	echo -e "extracted signature: $key"
 	echo -e "\n------------------------------------------------------------"
 
 	fi
