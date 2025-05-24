@@ -128,7 +128,7 @@ then
 
 		# Cleanup
 		rm /tmp/${NAME}*
-		rm /tmp/trustdb.gpg
+		rm /tmp/trustdb.gpg 2> /dev/null || true
 
 	# print result
 	echo -e "\n------------------------------------------------------------"
