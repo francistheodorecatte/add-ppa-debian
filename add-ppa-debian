@@ -113,7 +113,7 @@ then
 
 
 		# Get public key (ouchie levels of hackery ahead)
-		wget -q "https://launchpad.net/~${ppa_usr}/+archive/ubuntu/${ppa_d_name}" -O /tmp/${NAME}.html
+		curl -s "https://launchpad.net/~${ppa_usr}/+archive/ubuntu/${ppa_d_name}" -o /tmp/${NAME}.html
 		tmp=$(grep "<code>" /tmp/${NAME}.html | tr -d ' ')
 		key=${tmp:12:40}
 		pkill dirmngr && \
